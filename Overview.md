@@ -17,5 +17,10 @@
   - https://docs.m5stack.com/en/unit/Glass2%20Unit
 - ATOM Echo(操作＋スピーカー＋マイク)
   - https://www.switch-science.com/products/6347
+- GPSユニット
+  - https://www.switch-science.com/products/5694
 - バッテリーどうしようかなぁ
   - とりあえず普通のポータブルバッテリーでいいか・・・
+
+# 機能
+- 走行ペース表示機能、走行距離表示機能、総走行時間表示機能、走行姿勢警告機能、AIとの競争機能
