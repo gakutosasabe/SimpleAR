@@ -18,6 +18,11 @@
 # 機能
 - 走行ペース表示機能、走行距離表示機能、総走行時間表示機能、走行姿勢警告機能、AIとの競争機能
 
+## カードリッジ機能
+- 装着するATOMを変えることで機能を切り替えられるようにする
+![picture 1](images/b2b579f020b6f2e7a6d31af36d52364bf78fc45e69e84c8f47195e3da747e59e.jpg)  
+
+
 # UIデザイン
 <iframe style="border: 1px solid rgba(0, 0, 0, 0.1);" width="800" height="450" src="https://www.figma.com/embed?embed_host=share&url=https%3A%2F%2Fwww.figma.com%2Ffile%2F9CvITeSlLWFOAVkPiRbl0N%2FVirtual-Running-UI-Design%3Ftype%3Ddesign%26node-id%3D0%253A1%26mode%3Ddesign%26t%3DuFeco8oc3d86j1wJ-1" allowfullscreen></iframe>
 
