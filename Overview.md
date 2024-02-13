@@ -10,7 +10,16 @@
 - 2か月くらいで開発
 
 # イメージ
+- 初期イメージ
 ![alt text](20240211_160508.jpg)
+- ユニット決定後
+![picture 0](images/6ef02ae110170b166409d101e9aa2b712501e0f5612cb29792947f01a6fbbcea.jpg)  
+
+# 機能
+- 走行ペース表示機能、走行距離表示機能、総走行時間表示機能、走行姿勢警告機能、AIとの競争機能
+
+# UIデザイン
+<iframe style="border: 1px solid rgba(0, 0, 0, 0.1);" width="800" height="450" src="https://www.figma.com/embed?embed_host=share&url=https%3A%2F%2Fwww.figma.com%2Ffile%2F9CvITeSlLWFOAVkPiRbl0N%2FVirtual-Running-UI-Design%3Ftype%3Ddesign%26node-id%3D0%253A1%26mode%3Ddesign%26t%3DuFeco8oc3d86j1wJ-1" allowfullscreen></iframe>
 
 # 材料
 - M5 Glass Unit(表示インジケータ)
@@ -21,6 +30,3 @@
   - https://www.switch-science.com/products/5694
 - バッテリーどうしようかなぁ
   - とりあえず普通のポータブルバッテリーでいいか・・・
-
-# 機能
-- 走行ペース表示機能、走行距離表示機能、総走行時間表示機能、走行姿勢警告機能、AIとの競争機能
