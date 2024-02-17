@@ -60,6 +60,10 @@
   - https://memoteki.net/archives/3108
 - GPSUnitについての公式ドキュメント
   - https://github.com/m5stack/m5-docs/blob/master/docs/ja/unit/gps.md
+- Glass2ユニット製品詳細(M5公式)
+  - https://docs.m5stack.com/ja/unit/Glass2%20Unit
+- Glass2ユニットサンプルコード
+  - https://github.com/m5stack/M5GFX
 
 
 
