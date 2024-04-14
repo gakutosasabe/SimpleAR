@@ -15,6 +15,7 @@ U8G2_SSD1309_128X64_NONAME0_F_HW_I2C u8g2(U8G2_R2, /* clock=*/ 1, /* data=*/ 2, 
 /* プロトタイプ設定 */
 
 void startUpScreen();
+void mainMenuScreen();
 
 /* 変数*/
 enum ScreenState {
@@ -119,8 +120,7 @@ void loop() {
             currentScreen = MAIN_MENU;
             break;
         case MAIN_MENU:
-            u8g2.drawBitmap(0,0,128/8,64,epd_bitmap_Main_Menu);
-            u8g2.sendBuffer();
+            mainMenuScreen();
             break;
         case RUN_VISION_START:
             break;
@@ -144,4 +144,9 @@ void startUpScreen(){
     u8g2.sendBuffer();		// transfer internal memory to the display
     delay(2000);
     u8g2.clearBuffer(); 
+}
+
+void mainMenuScreen(){
+	u8g2.drawBitmap(0,0,128/8,64,epd_bitmap_Main_Menu);
+	u8g2.sendBuffer();
 }
