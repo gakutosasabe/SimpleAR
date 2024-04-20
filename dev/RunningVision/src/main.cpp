@@ -19,10 +19,11 @@ U8G2_SSD1309_128X64_NONAME0_F_HW_I2C u8g2(U8G2_R2, /* clock=*/ 1, /* data=*/ 2, 
 void startUpScreen();
 void mainMenuScreen();
 void readGyro();
-float getRoll();
 float getPitch();
-void calculateXY();
+void calculatePitch();
 void testScreen();
+void showControlBar();
+void updateControl();
 
 /* 画面系変数*/
 enum ScreenState {
@@ -32,15 +33,20 @@ enum ScreenState {
     TEST
 };
 
+enum ControlState {
+    UP,
+    DOWN,
+    CENTER
+};
+
 ScreenState currentScreen = TITLE;
+ControlState currentControl = CENTER;
 
 /* 加速度センサー変数*/
 float acc[3];
 float gyro[3];
-float kalAngleX;
-float kalAngleY;
-Kalman kalmanX;
-Kalman kalmanY;
+float kalAnglePitch;
+Kalman kalmanPitch;
 long lastMs = 0;
 
 
@@ -53,8 +59,7 @@ void setup() {
     //IMU設定
     M5.Imu.init();
     readGyro();
-    kalmanX.setAngle(getRoll());
-    kalmanY.setAngle(getPitch());
+    kalmanPitch.setAngle(getPitch());
 
     //GPS Unit 設定
     //GPSRaw.begin(9600,SERIAL_8N1,21,25);//baudrate, config,rx,tx(ATOM ECHO)
@@ -69,10 +74,10 @@ void loop() {
     switch (currentScreen) {
         case TITLE:
             startUpScreen();
-            currentScreen = TEST;
+            currentScreen = MAIN_MENU;
             break;
         case TEST:
-            calculateXY();
+            calculatePitch();
             testScreen();
             break;
         case MAIN_MENU:
@@ -82,6 +87,11 @@ void loop() {
             break;
     }
 
+    calculatePitch();
+    updateControl();
+    showControlBar();
+
+    u8g2.sendBuffer();
 
     if (GPSRaw.available()){
         int ch = GPSRaw.read();
@@ -106,17 +116,12 @@ void testScreen(){
     char buffer[20];
     u8g2.clearBuffer();		// clear the internal memory
     u8g2.setFont(u8g2_font_tenthinguys_tf); // set custom font
-    dtostrf(kalAngleX,6,2,buffer);
+    dtostrf(kalAnglePitch,6,2,buffer);
     u8g2.drawStr(0,20,buffer);
-    dtostrf(kalAngleY,6,2,buffer);
-    u8g2.drawStr(0,40,buffer);
-    u8g2.sendBuffer();
 }
 
 void mainMenuScreen(){
 	u8g2.drawBitmap(0,0,128/8,64,epd_bitmap_Main_Menu);
-	u8g2.drawBitmap(110,49,16/8,14,epd_bitmap_cross_button_center);
-	u8g2.sendBuffer();
 }
 
 void readGyro(){
@@ -124,20 +129,42 @@ void readGyro(){
     M5.Imu.getAccelData(&acc[0], &acc[1], &acc[2]);  
 }
 
-float getRoll(){
-    return atan2(acc[1], acc[2]) * RAD_TO_DEG;
-}
 
 float getPitch(){
-    return atan(-acc[0] / sqrt(acc[1]*acc[1] + acc[2]*acc[2])) * RAD_TO_DEG;
+    return atan2(-acc[1], acc[0]) * RAD_TO_DEG;
 }
 
-void calculateXY(){
+
+void calculatePitch(){
     readGyro();
     float dt = (micros() - lastMs) / 1000000.0;
     lastMs = micros();
-    float roll = getRoll();
     float pitch = getPitch();
-    kalAngleX = kalmanX.getAngle(roll, gyro[0], dt);
-    kalAngleY = kalmanY.getAngle(pitch, gyro[1], dt);
+    kalAnglePitch = kalmanPitch.getAngle(pitch, gyro[2], dt);
+}
+
+void updateControl(){
+    if( kalAnglePitch >= 30){
+        currentControl = UP;
+    }
+    if(kalAnglePitch > -30 && kalAnglePitch < 30){
+        currentControl = CENTER;
+    }
+    if( kalAnglePitch <= -30){
+        currentControl = DOWN;
+    }
+}
+
+void showControlBar(){
+
+    if(currentControl == UP){
+        u8g2.drawBitmap(110,49,16/8,14,epd_bitmap_cross_button_up);
+    }
+    if(currentControl == CENTER){
+        u8g2.drawBitmap(110,49,16/8,14,epd_bitmap_cross_button_center);
+    }
+    if(currentControl == DOWN){
+        u8g2.drawBitmap(110,49,16/8,14,epd_bitmap_cross_button_down);
+    }
+
 }
