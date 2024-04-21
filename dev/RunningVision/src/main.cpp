@@ -10,8 +10,22 @@
 HardwareSerial GPSRaw(2);
 //M5UnitGLASS2 display(26,32,40000); // SDA, SCL, FREQ(ATOM ECHO)
 M5UnitGLASS2 display(2,1,40000); // SDA, SCL, FREQ(ATOM S3)
-M5Canvas canvas(&display);
+//M5Canvas canvas(&display);
 U8G2_SSD1309_128X64_NONAME0_F_HW_I2C u8g2(U8G2_R2, /* clock=*/ 1, /* data=*/ 2, /* reset=*/ U8X8_PIN_NONE); //* clock=*/ SCL, /* data=*/ SDA
+
+/* ボタン設定 */
+const int buttonPin = 41;
+const int buttonDownTime = 500; //自動ボタンたち下がり時間(ms)
+
+/* 画面設定 */
+const int numItems = 3;
+const int maxItemLength = 20;
+
+char menuItems [numItems][maxItemLength] = {
+    { "RunningVision" },
+    { "DebugMode" },
+    { "Settings" }
+};
 
 
 /* プロトタイプ設定 */
@@ -24,13 +38,14 @@ void calculatePitch();
 void testScreen();
 void showControlBar();
 void updateControl();
+void updateButtonState();
 
-/* 画面系変数*/
+/* 状態変数*/
 enum ScreenState {
     TITLE,
     MAIN_MENU,
     RUN_VISION_START,
-    TEST
+    DEBUG
 };
 
 enum ControlState {
@@ -39,8 +54,14 @@ enum ControlState {
     CENTER
 };
 
-ScreenState currentScreen = TITLE;
-ControlState currentControl = CENTER;
+enum ButtonState {
+    NOT_PRESSED,
+    PRESSED
+};
+
+ScreenState currentScreen = TITLE; //現在の画面状態
+ControlState currentControl = CENTER; //現在の頭方向状態
+ButtonState currentButtonState = NOT_PRESSED; //現在のボタン押下状態
 
 /* 加速度センサー変数*/
 float acc[3];
@@ -61,6 +82,9 @@ void setup() {
     readGyro();
     kalmanPitch.setAngle(getPitch());
 
+    //ボタン設定
+    pinMode(buttonPin, INPUT);
+
     //GPS Unit 設定
     //GPSRaw.begin(9600,SERIAL_8N1,21,25);//baudrate, config,rx,tx(ATOM ECHO)
     GPSRaw.begin(9600,SERIAL_8N1,39,38);//baudrate, config,rx,tx(ATOM S3)
@@ -76,9 +100,11 @@ void loop() {
             startUpScreen();
             currentScreen = MAIN_MENU;
             break;
-        case TEST:
-            calculatePitch();
+        case DEBUG:
             testScreen();
+            if(currentButtonState == PRESSED){
+                currentScreen = MAIN_MENU;
+            }
             break;
         case MAIN_MENU:
             mainMenuScreen();
@@ -87,6 +113,7 @@ void loop() {
             break;
     }
 
+    updateButtonState();
     calculatePitch();
     updateControl();
     showControlBar();
@@ -98,6 +125,7 @@ void loop() {
         Serial.write(ch);
         //canvas.print(ch);
     }
+    Serial.println("loop now!");
 
     delay(100);
 }
@@ -118,10 +146,75 @@ void testScreen(){
     u8g2.setFont(u8g2_font_tenthinguys_tf); // set custom font
     dtostrf(kalAnglePitch,6,2,buffer);
     u8g2.drawStr(0,20,buffer);
+    dtostrf(currentButtonState,6,2,buffer);
+    u8g2.drawStr(0,40,buffer);
 }
 
 void mainMenuScreen(){
-	u8g2.drawBitmap(0,0,128/8,64,epd_bitmap_Main_Menu);
+    static int itemSelected = 0;
+    static unsigned long selectedTime =0;
+    unsigned long currentTime = millis();
+    int itemSelPrevious;
+    int itemSelNext;
+
+    //背景諸々描写
+    u8g2.drawBitmap(0,20,128/8,24,epd_bitmap_background);//選択枠
+
+    //選択アイテム更新
+    if(currentControl == UP && currentButtonState == PRESSED){
+        itemSelected = itemSelected -1;
+        if(itemSelected < 0){
+            if(currentTime - selectedTime > 500){
+                itemSelected = numItems -1;
+                selectedTime = currentTime;
+            }
+        }
+    }
+    if(currentControl == DOWN && currentButtonState == PRESSED){
+        itemSelected = itemSelected +1;
+        if(itemSelected >= numItems){
+            if(currentTime - selectedTime > 500){
+                itemSelected = 0;
+                selectedTime = currentTime;
+            }
+        }
+    }
+    if(currentControl == CENTER && currentButtonState == PRESSED){
+        if(currentTime - selectedTime > 500){
+            if(itemSelected == 0){
+                currentScreen = RUN_VISION_START;
+            }
+            if(itemSelected == 1){
+                currentScreen = DEBUG;
+            }
+            selectedTime = currentTime;
+        }
+    }
+
+    itemSelPrevious = itemSelected -1;
+    if(itemSelPrevious < 0){
+        itemSelPrevious = numItems -1;
+    }
+    itemSelNext = itemSelected +1;
+    if(itemSelNext >= numItems){
+        itemSelNext = 0;
+    }
+
+    //メニューアイコン&メニュータイトル描画
+    u8g2.setFont(u8g_font_7x14);
+    u8g2.drawStr(25,15, menuItems[itemSelPrevious]);
+    u8g2.drawBitmap(4,2, 16/8, 16, epd_bitmap_icons[itemSelPrevious]);
+
+    u8g2.setFont(u8g_font_7x14B);
+    u8g2.drawStr(25,15+20+2, menuItems[itemSelected]);
+    u8g2.drawBitmap(4,24, 16/8, 16, epd_bitmap_icons[itemSelected]);
+
+    u8g2.setFont(u8g_font_7x14);
+    u8g2.drawStr(25,15+20+20+2+2, menuItems[itemSelNext]);
+    u8g2.drawBitmap(4,46, 16/8, 16, epd_bitmap_icons[itemSelNext]);
+
+
+
 }
 
 void readGyro(){
@@ -166,5 +259,25 @@ void showControlBar(){
     if(currentControl == DOWN){
         u8g2.drawBitmap(110,49,16/8,14,epd_bitmap_cross_button_down);
     }
+
+}
+
+void updateButtonState(){
+    static int lastButtonRead = HIGH;
+    static unsigned long buttonPressedTime = 0;
+    int readButton = digitalRead(buttonPin);
+    unsigned long currentTime = millis();
+
+    if(readButton != lastButtonRead){
+        if(readButton == LOW){
+            currentButtonState = PRESSED;
+            buttonPressedTime = currentTime;
+        }
+    }
+    if (currentButtonState == PRESSED && (currentTime - buttonPressedTime > buttonDownTime)){
+        currentButtonState = NOT_PRESSED;
+    }
+
+    lastButtonRead = readButton;
 
 }
