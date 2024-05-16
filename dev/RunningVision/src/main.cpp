@@ -68,7 +68,7 @@ float acc[3];
 float gyro[3];
 float kalAnglePitch;
 Kalman kalmanPitch;
-long lastMs = 0;
+unsigned long lastMs = ESP.getCycleCount();
 
 
 
@@ -95,10 +95,15 @@ void setup() {
 }
 
 void loop() {
+    //unsigned long currentMicros = ESP.getCycleCount();
+    //Serial.println(currentMicros); // シリアル出力でmicrosの動作確認
+    //Serial.println("loop now!");
+
+
     switch (currentScreen) {
         case TITLE:
             startUpScreen();
-            currentScreen = MAIN_MENU;
+            currentScreen = DEBUG;
             break;
         case DEBUG:
             testScreen();
@@ -117,14 +122,16 @@ void loop() {
     calculatePitch();
     updateControl();
     showControlBar();
+    
 
     u8g2.sendBuffer();
 
-    if (GPSRaw.available()){
-        int ch = GPSRaw.read();
-        Serial.write(ch);
-        //canvas.print(ch);
-    }
+    //if (GPSRaw.available()){
+    //    int ch = GPSRaw.read();
+    //    Serial.write(ch);
+    //    //canvas.print(ch);
+    //}
+
     Serial.println("loop now!");
 
     delay(100);
@@ -230,8 +237,9 @@ float getPitch(){
 
 void calculatePitch(){
     readGyro();
-    float dt = (micros() - lastMs) / 1000000.0;
-    lastMs = micros();
+    unsigned long currentMicros = ESP.getCycleCount();
+    float dt = (currentMicros - lastMs) / 1000000.0f;
+    lastMs = currentMicros;
     float pitch = getPitch();
     kalAnglePitch = kalmanPitch.getAngle(pitch, gyro[2], dt);
 }
