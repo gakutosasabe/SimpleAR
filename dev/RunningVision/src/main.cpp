@@ -15,7 +15,7 @@ U8G2_SSD1309_128X64_NONAME0_F_HW_I2C u8g2(U8G2_R2, /* clock=*/ 1, /* data=*/ 2, 
 
 /* ボタン設定 */
 const int buttonPin = 41;
-const int buttonDownTime = 500; //自動ボタンたち下がり時間(ms)
+const int buttonDownTime = 100; //自動ボタンたち下がり時間(ms)
 
 /* 画面設定 */
 const int numItems = 3;
@@ -102,13 +102,16 @@ void loop() {
 
     switch (currentScreen) {
         case TITLE:
+            u8g2.firstPage();
             startUpScreen();
-            currentScreen = DEBUG;
+            currentScreen = MAIN_MENU;
+            u8g2.nextPage();
             break;
         case DEBUG:
             testScreen();
             if(currentButtonState == PRESSED){
                 currentScreen = MAIN_MENU;
+                u8g2.nextPage();
             }
             break;
         case MAIN_MENU:
@@ -132,7 +135,7 @@ void loop() {
     //    //canvas.print(ch);
     //}
 
-    Serial.println("loop now!");
+    Serial.println(currentButtonState);
 
     delay(100);
 }
@@ -158,6 +161,7 @@ void testScreen(){
 }
 
 void mainMenuScreen(){
+    u8g2.clearBuffer();	
     static int itemSelected = 0;
     static unsigned long selectedTime =0;
     unsigned long currentTime = millis();
