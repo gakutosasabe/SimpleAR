@@ -16,6 +16,7 @@ U8G2_SSD1309_128X64_NONAME0_F_HW_I2C u8g2(U8G2_R2, /* clock=*/ 1, /* data=*/ 2, 
 /* ボタン設定 */
 const int buttonPin = 41;
 const int buttonDownTime = 100; //自動ボタンたち下がり時間(ms)
+const int longPressDuration = 1000; //ボタン長押し判定時間(ms)
 
 /* 画面設定 */
 const int numItems = 3;
@@ -35,17 +36,19 @@ void mainMenuScreen();
 void readGyro();
 float getPitch();
 void calculatePitch();
-void testScreen();
+void debugScreen();
 void showControlBar();
 void updateControl();
 void updateButtonState();
 void runningVisionTitleScreen();
+void runningVisionRunningScreen();
 
 /* 状態変数*/
 enum ScreenState {
     TITLE,
     MAIN_MENU,
     RUN_VISION_START,
+    RUN_VISION_NOW,
     DEBUG
 };
 
@@ -57,7 +60,8 @@ enum ControlState {
 
 enum ButtonState {
     NOT_PRESSED,
-    PRESSED
+    PRESSED,
+    LONG_PRESSED,
 };
 
 ScreenState currentScreen = TITLE; //現在の画面状態
@@ -109,7 +113,7 @@ void loop() {
             u8g2.nextPage();
             break;
         case DEBUG:
-            testScreen();
+            debugScreen();
             if(currentButtonState == PRESSED){
                 currentScreen = MAIN_MENU;
                 u8g2.nextPage();
@@ -125,6 +129,9 @@ void loop() {
                 u8g2.nextPage();
             }
             break;
+        case RUN_VISION_NOW:
+            break;
+        
     }
 
     updateButtonState();
@@ -156,7 +163,7 @@ void startUpScreen(){
     u8g2.clearBuffer(); 
 }
 
-void testScreen(){
+void debugScreen(){
     char buffer[20];
     u8g2.clearBuffer();		// clear the internal memory
     u8g2.setFont(u8g2_font_tenthinguys_tf); // set custom font
@@ -174,6 +181,14 @@ void runningVisionTitleScreen(){
     u8g2.setFont(u8g2_font_squeezed_r6_tr);
     u8g2.drawStr(30,50,"Hold down the button");
     u8g2.drawStr(42,60,"Start running");
+}
+
+void runningVisionRunningScreen(){
+    u8g2.clearBuffer();
+    u8g2.setFont(u8g2_font_luBIS08_tr);
+    u8g2.drawStr(40,20,"Dis: 7.78km");
+    u8g2.drawStr(40,30,"Pace: 5'54/km");
+    u8g2.drawStr(40,40,"Step: 5500");
 }
 
 void mainMenuScreen(){
@@ -240,8 +255,6 @@ void mainMenuScreen(){
     u8g2.drawStr(25,15+20+20+2+2, menuItems[itemSelNext]);
     u8g2.drawBitmap(4,46, 16/8, 16, epd_bitmap_icons[itemSelNext]);
 
-
-
 }
 
 void readGyro(){
@@ -292,20 +305,34 @@ void showControlBar(){
 
 void updateButtonState(){
     static int lastButtonRead = HIGH;
+    static unsigned long buttonReleasedTime = 0;
     static unsigned long buttonPressedTime = 0;
     int readButton = digitalRead(buttonPin);
     unsigned long currentTime = millis();
 
+    //ボタンの状態監視
     if(readButton != lastButtonRead){
         if(readButton == LOW){
-            currentButtonState = PRESSED;
             buttonPressedTime = currentTime;
+            Serial.println("ButtonPressed!!");
+        }
+        if(readButton == HIGH){
+            currentButtonState = PRESSED;
+            buttonReleasedTime = currentTime;
+            Serial.println("ButtonReleased!!");
         }
     }
-    if (currentButtonState == PRESSED && (currentTime - buttonPressedTime > buttonDownTime)){
-        currentButtonState = NOT_PRESSED;
+
+    //ボタンの長押し判定
+    if(((buttonReleasedTime - buttonPressedTime) > longPressDuration) && ((buttonReleasedTime - buttonPressedTime) > 0)){
+        currentButtonState = LONG_PRESSED;
     }
 
+    //ボタン押下後の初期化
+    if ((currentButtonState == PRESSED || currentButtonState == LONG_PRESSED) && (currentTime - buttonReleasedTime > buttonDownTime)){
+        currentButtonState = NOT_PRESSED;
+    }
+    
     lastButtonRead = readButton;
 
 }
