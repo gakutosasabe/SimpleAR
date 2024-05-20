@@ -42,13 +42,15 @@ void updateControl();
 void updateButtonState();
 void runningVisionTitleScreen();
 void runningVisionRunningScreen();
+void runningVisionPauseScreen();
 
 /* 状態変数*/
 enum ScreenState {
     TITLE,
     MAIN_MENU,
     RUN_VISION_START,
-    RUN_VISION_NOW,
+    RUN_VISION_RUNNING,
+    RUN_VISION_PAUSE,
     DEBUG
 };
 
@@ -128,9 +130,28 @@ void loop() {
                 currentScreen = MAIN_MENU;
                 u8g2.nextPage();
             }
+            if(currentButtonState == LONG_PRESSED){
+                currentScreen = RUN_VISION_RUNNING;
+                u8g2.nextPage();
+            }
             break;
-        case RUN_VISION_NOW:
+        case RUN_VISION_RUNNING:
+            runningVisionRunningScreen();
+            if(currentButtonState == PRESSED){
+                currentScreen = RUN_VISION_PAUSE;
+                u8g2.nextPage();
+            }
             break;
+        case RUN_VISION_PAUSE:
+            runningVisionPauseScreen();
+            if(currentButtonState == PRESSED){
+                currentScreen = RUN_VISION_RUNNING;
+                u8g2.nextPage();
+            }
+            if(currentButtonState == LONG_PRESSED){
+                currentScreen = MAIN_MENU;
+                u8g2.nextPage();
+            }
         
     }
 
@@ -190,6 +211,16 @@ void runningVisionRunningScreen(){
     u8g2.drawStr(40,30,"Pace: 5'54/km");
     u8g2.drawStr(40,40,"Step: 5500");
 }
+
+void runningVisionPauseScreen(){
+    u8g2.clearBuffer();
+    u8g2.setFont(u8g2_font_tenthinguys_tf);
+    u8g2.drawStr(45,30,"Pause"); // print some message
+    u8g2.setFont(u8g2_font_squeezed_r6_tr);
+    u8g2.drawStr(30,50,"Hold down the button");
+    u8g2.drawStr(35,60,"back to main menu");
+}
+
 
 void mainMenuScreen(){
     u8g2.clearBuffer();	
