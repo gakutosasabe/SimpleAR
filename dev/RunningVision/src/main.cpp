@@ -4,14 +4,20 @@
 #include <U8g2lib.h>
 #include <ScreenBitMap.h>
 #include <Kalman.h>
+#include <TinyGPSPlus.h>
 
-/* ハードウェア設定 */
+/* Glass2ユニット設定 */
 
-HardwareSerial GPSRaw(2);
 //M5UnitGLASS2 display(26,32,40000); // SDA, SCL, FREQ(ATOM ECHO)
 M5UnitGLASS2 display(2,1,40000); // SDA, SCL, FREQ(ATOM S3)
 //M5Canvas canvas(&display);
 U8G2_SSD1309_128X64_NONAME0_F_HW_I2C u8g2(U8G2_R2, /* clock=*/ 1, /* data=*/ 2, /* reset=*/ U8X8_PIN_NONE); //* clock=*/ SCL, /* data=*/ SDA
+
+/* GPSユニット設定*/
+HardwareSerial GPSRaw(2);
+static const uint32_t gpsBaud = 9600;
+TinyGPSPlus gps;
+
 
 /* ボタン設定 */
 const int buttonPin = 41;
@@ -43,6 +49,7 @@ void updateButtonState();
 void runningVisionTitleScreen();
 void runningVisionRunningScreen();
 void runningVisionPauseScreen();
+static void smartDelay(unsigned long ms);
 
 /* 状態変数*/
 enum ScreenState {
@@ -94,7 +101,7 @@ void setup() {
 
     //GPS Unit 設定
     //GPSRaw.begin(9600,SERIAL_8N1,21,25);//baudrate, config,rx,tx(ATOM ECHO)
-    GPSRaw.begin(9600,SERIAL_8N1,39,38);//baudrate, config,rx,tx(ATOM S3)
+    GPSRaw.begin(gpsBaud,SERIAL_8N1,39,38);//baudrate, config,rx,tx(ATOM S3)
     
     //u8g2設定
     u8g2.begin(); // start the u8g2 library
