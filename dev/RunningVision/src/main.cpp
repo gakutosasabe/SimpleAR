@@ -90,6 +90,7 @@ void setup() {
     M5.begin();
     M5.Power.begin();
     Serial.begin(9600);
+    delay(500);
 
     //IMU設定
     M5.Imu.init();
@@ -106,13 +107,18 @@ void setup() {
     //u8g2設定
     u8g2.begin(); // start the u8g2 library
     display.begin();
+
 }
 
 void loop() {
     //unsigned long currentMicros = ESP.getCycleCount();
     //Serial.println(currentMicros); // シリアル出力でmicrosの動作確認
     //Serial.println("loop now!");
-
+    if(GPSRaw.available() > 0){
+        Serial.println("GPSAvailable!");
+        gps.encode(GPSRaw.read());
+        Serial.println(gps.location.lat());
+    }
 
     switch (currentScreen) {
         case TITLE:
@@ -212,11 +218,24 @@ void runningVisionTitleScreen(){
 }
 
 void runningVisionRunningScreen(){
+    double pace = gps.speed.kmph();
+    double cource = gps.course.deg();
+    char buffer[20];
+
     u8g2.clearBuffer();
     u8g2.setFont(u8g2_font_luBIS08_tr);
-    u8g2.drawStr(40,20,"Dis: 7.78km");
-    u8g2.drawStr(40,30,"Pace: 5'54/km");
-    u8g2.drawStr(40,40,"Step: 5500");
+
+    sprintf(buffer, "Cource: %.1f deg", cource);
+    u8g2.drawStr(30,20,buffer);
+    sprintf(buffer, "Pace: %.2f/km", pace);
+    u8g2.drawStr(30,30,buffer);
+
+    u8g2.drawStr(30,40,"Step: 5500");
+
+    smartDelay(100);
+    if (millis() > 5000 && gps.charsProcessed() < 10){
+        u8g2.drawStr(20,50,"No GPS data received");
+    }
 }
 
 void runningVisionPauseScreen(){
@@ -373,4 +392,12 @@ void updateButtonState(){
     
     lastButtonRead = readButton;
 
+}
+
+static void smartDelay(unsigned long ms){
+    unsigned long start = millis();
+    do {
+        while (GPSRaw.available()) gps.encode(GPSRaw.read()); // シリアルポートからデータが読み込まれ、GPSオブジェクトにエンコードされる間、繰り返し処理を実行
+    }
+    while (millis() - start < ms);
 }
