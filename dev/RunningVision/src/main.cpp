@@ -4,7 +4,7 @@
 #include <U8g2lib.h>
 #include <ScreenBitMap.h>
 #include <Kalman.h>
-#include <TinyGPSPlus.h>
+#include <TinyGPS++.h>
 
 /* Glass2ユニット設定 */
 
@@ -103,6 +103,7 @@ void setup() {
     //GPS Unit 設定
     //GPSRaw.begin(9600,SERIAL_8N1,21,25);//baudrate, config,rx,tx(ATOM ECHO)
     GPSRaw.begin(gpsBaud,SERIAL_8N1,39,38);//baudrate, config,rx,tx(ATOM S3)
+    //GPSRaw.begin(gpsBaud);
     
     //u8g2設定
     u8g2.begin(); // start the u8g2 library
@@ -114,11 +115,47 @@ void loop() {
     //unsigned long currentMicros = ESP.getCycleCount();
     //Serial.println(currentMicros); // シリアル出力でmicrosの動作確認
     //Serial.println("loop now!");
-    if(GPSRaw.available() > 0){
-        Serial.println("GPSAvailable!");
+    // if(GPSRaw.available() > 0){
+    //     Serial.println("GPSAvailable!");
+    //     gps.encode(GPSRaw.read());
+    //     Serial.println(gps.location.lat());
+    // }
+
+    while (GPSRaw.available()) {
         gps.encode(GPSRaw.read());
-        Serial.println(gps.location.lat());
     }
+
+    Serial.println(gps.satellites.value());
+    Serial.println(gps.charsProcessed());
+    Serial.print("Latitude: ");
+    Serial.println(gps.location.lat(), 6);
+    Serial.print("Longitude: ");
+    Serial.println(gps.location.lng(), 6);
+    Serial.print("Altitude: ");
+    Serial.println(gps.altitude.meters());
+
+    M5.Lcd.setCursor(0, 0);           // 表示座標指定
+    M5.Lcd.setTextFont(1);            // 文字サイズ指定
+    M5.Lcd.setTextColor(CYAN, BLACK); // 文字色, 背景色
+    M5.Lcd.drawCentreString("< TinyGPSPlus TEST >\n", 20, 0, 1); // テキスト中央表示(文字列, x座標, y座標, フォント番号)
+    M5.Lcd.setCursor(0, 26);          // 表示座標指定
+    M5.Lcd.setTextColor(WHITE, BLACK);                            // 文字色, 背景色
+    M5.Lcd.printf("Satelites : %02d\n", gps.satellites.value());  // 衛星の数を表示する
+    M5.Lcd.printf("HDOP      : %d \n", gps.hdop.value());         // HDOP値（水平方向の測定の正確さ）を表示する
+    M5.Lcd.setTextColor(RED, BLACK);                              // 文字色, 背景色
+    M5.Lcd.printf("N : %f  \n", gps.location.lat());              // 緯度を表示する
+    M5.Lcd.setTextColor(GREEN, BLACK);                            // 文字色, 背景色
+    M5.Lcd.printf("E : %f  \n", gps.location.lng());              // 経度を表示する
+    M5.Lcd.setTextColor(WHITE, BLACK);                            // 文字色, 背景色
+    M5.Lcd.printf("Location : %.3f  \n", gps.location.age());     // GPS位置情報の更新からの経過時間を表示する
+    M5.Lcd.printf("Altitude   : %.1fm  \n", gps.altitude.meters()); // 高度をメートル単位で表示する
+    M5.Lcd.printf("Course    : %.1f'  \n", gps.course.deg());       // 方位角を度数法で表示する
+    M5.Lcd.printf("Speed     : %.1fkm  \n", gps.speed.kmph());      // 速度をキロメートル/時単位で表示する
+    M5.Lcd.printf("Receivewords  : %1f  \n", gps.charsProcessed());      // 速度をキロメートル/時単位で表示する
+
+    if (millis() > 5000 && gps.charsProcessed() < 10)
+      M5.Lcd.println(F("No GPS data received: check wiring"));
+
 
     switch (currentScreen) {
         case TITLE:
@@ -182,9 +219,9 @@ void loop() {
     //    //canvas.print(ch);
     //}
 
-    Serial.println(currentButtonState);
+    //Serial.println(currentButtonState);
 
-    delay(100);
+    smartDelay(1000);
 }
 
 void startUpScreen(){
