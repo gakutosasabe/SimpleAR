@@ -1,12 +1,14 @@
 #include <M5Unified.h>
 #include <M5GFX.h>
 #include <M5UnitGLASS2.h>
+#include <TinyGPSPlus.h>
 
 HardwareSerial GPSRaw(2);
 //M5UnitGLASS2 display(26,32,40000); // SDA, SCL, FREQ(ATOM ECHO)
 M5UnitGLASS2 display(2,1,40000); // SDA, SCL, FREQ(ATOM ECHO)
 
 M5Canvas canvas(&display);
+TinyGPSPlus gps;
 
 static constexpr char text0[] = "hello user";
 static constexpr char text1[] = "this";
@@ -38,8 +40,10 @@ void setup() {
 void loop() {
     if (GPSRaw.available()){
         int ch = GPSRaw.read();
-        Serial.write(ch);
-        canvas.print(ch);
+        
+        Serial.println((char)ch);
+        canvas.print((char)ch);
+        gps.encode(ch);
     }
 
     static int count = 0;
