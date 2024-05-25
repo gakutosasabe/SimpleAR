@@ -25,13 +25,14 @@ const int buttonDownTime = 100; //自動ボタンたち下がり時間(ms)
 const int longPressDuration = 1000; //ボタン長押し判定時間(ms)
 
 /* 画面設定 */
-const int numItems = 3;
+const int numItems = 4;
 const int maxItemLength = 20;
 
 char menuItems [numItems][maxItemLength] = {
     { "RunningVision" },
     { "DebugMode" },
-    { "Settings" }
+    { "Settings" },
+    { "PomoWatch" },
 };
 
 
@@ -57,8 +58,11 @@ enum ScreenState {
     MAIN_MENU,
     RUN_VISION_START,
     RUN_VISION_RUNNING,
-    RUN_VISION_PAUSE,
-    DEBUG
+    PAUSE,
+    DEBUG,
+    POMO_WATCH_START,
+    POMO_WATCH_TIME,
+
 };
 
 enum ControlState {
@@ -188,11 +192,11 @@ void loop() {
         case RUN_VISION_RUNNING:
             runningVisionRunningScreen();
             if(currentButtonState == PRESSED){
-                currentScreen = RUN_VISION_PAUSE;
+                currentScreen = PAUSE;
                 u8g2.nextPage();
             }
             break;
-        case RUN_VISION_PAUSE:
+        case PAUSE:
             runningVisionPauseScreen();
             if(currentButtonState == PRESSED){
                 currentScreen = RUN_VISION_RUNNING;
@@ -202,6 +206,24 @@ void loop() {
                 currentScreen = MAIN_MENU;
                 u8g2.nextPage();
             }
+        case POMO_WATCH_START:
+            // 描画関数
+            if(currentButtonState == PRESSED){
+                currentScreen = MAIN_MENU;
+                u8g2.nextPage();
+            }
+            if(currentButtonState == LONG_PRESSED){
+                currentScreen = POMO_WATCH_TIME;
+                u8g2.nextPage();
+            }
+            break;
+        case POMO_WATCH_TIME:
+            //描画関数
+            if(currentButtonState == PRESSED){
+                currentScreen = PAUSE;
+                u8g2.nextPage();
+            }
+            break;
         
     }
 
@@ -221,7 +243,7 @@ void loop() {
 
     //Serial.println(currentButtonState);
 
-    smartDelay(1000);
+    smartDelay(100);
 }
 
 void startUpScreen(){
