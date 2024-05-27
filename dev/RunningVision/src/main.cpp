@@ -50,6 +50,7 @@ void updateButtonState();
 void runningVisionTitleScreen();
 void runningVisionRunningScreen();
 void runningVisionPauseScreen();
+void pomoWatchTitleScreen();
 static void smartDelay(unsigned long ms);
 
 /* 状態変数*/
@@ -208,6 +209,7 @@ void loop() {
             }
         case POMO_WATCH_START:
             // 描画関数
+            pomoWatchTitleScreen();
             if(currentButtonState == PRESSED){
                 currentScreen = MAIN_MENU;
                 u8g2.nextPage();
@@ -264,6 +266,17 @@ void debugScreen(){
     u8g2.drawStr(0,20,buffer);
     dtostrf(currentButtonState,6,2,buffer);
     u8g2.drawStr(0,40,buffer);
+}
+
+void pomoWatchTitleScreen(){
+    u8g2.clearBuffer();
+    u8g2.setFont(u8g2_font_princess_tr);
+    u8g2.drawStr(20,20,"Pomo Watch"); // print some message
+    u8g2.drawStr(40,35,"Ver 0.9");
+    u8g2.setFont(u8g2_font_squeezed_r6_tr);
+    u8g2.drawStr(30,50,"Hold down the button");
+    u8g2.drawStr(42,60,"Start pomodoro");
+
 }
 
 void runningVisionTitleScreen(){
