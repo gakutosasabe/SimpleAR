@@ -51,9 +51,12 @@ void runningVisionTitleScreen();
 void runningVisionRunningScreen();
 void runningVisionPauseScreen();
 void pomoWatchTitleScreen();
+void pomoWatchTimeScreen();
 static void smartDelay(unsigned long ms);
 
 /* 状態変数*/
+
+//画面遷移状態
 enum ScreenState {
     TITLE,
     MAIN_MENU,
@@ -66,12 +69,14 @@ enum ScreenState {
 
 };
 
+//視線コントロール状態
 enum ControlState {
     UP,
     DOWN,
     CENTER
 };
 
+//ボタン状態
 enum ButtonState {
     NOT_PRESSED,
     PRESSED,
@@ -81,6 +86,23 @@ enum ButtonState {
 ScreenState currentScreen = TITLE; //現在の画面状態
 ControlState currentControl = CENTER; //現在の頭方向状態
 ButtonState currentButtonState = NOT_PRESSED; //現在のボタン押下状態
+
+//ポモドーロタイマー画面状態
+enum PomoTimerScreenState{
+    START,
+    WORK,
+    REST,
+};
+
+//ポモドーロタイマー状態
+enum PomoTimerState{
+    PAUSED,
+    RUNNING,
+};
+
+PomoTimerScreenState currentPomoTimerScreen = START;
+PomoTimerState currentPomoTimerState = PAUSED;
+
 
 /* 加速度センサー変数*/
 float acc[3];
@@ -221,7 +243,8 @@ void loop() {
             break;
         case POMO_WATCH_TIME:
             //描画関数
-            if(currentButtonState == PRESSED){
+            pomoWatchTimeScreen();
+            if(currentButtonState == LONG_PRESSED){
                 currentScreen = PAUSE;
                 u8g2.nextPage();
             }
@@ -277,6 +300,24 @@ void pomoWatchTitleScreen(){
     u8g2.drawStr(30,50,"Hold down the button");
     u8g2.drawStr(42,60,"Start pomodoro");
 
+}
+
+void pomoWatchTimeScreen(){
+    switch(currentPomoTimerScreen){
+        case START:
+            break;
+        case WORK:
+            break;
+        case REST:
+            break;
+    }
+
+    switch(currentPomoTimerState){
+        case PAUSED:
+            break;
+        case RUNNING:
+            break;
+    }
 }
 
 void runningVisionTitleScreen(){
