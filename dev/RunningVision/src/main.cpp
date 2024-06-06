@@ -24,7 +24,7 @@ const int buttonPin = 41;
 const int buttonDownTime = 100; //自動ボタンたち下がり時間(ms)
 const int longPressDuration = 1000; //ボタン長押し判定時間(ms)
 
-/* 画面設定 */
+/* メニュー設定 */
 const int numItems = 4;
 const int maxItemLength = 20;
 
@@ -34,6 +34,8 @@ char menuItems [numItems][maxItemLength] = {
     { "Settings" },
     { "PomoWatch" },
 };
+
+/* ポモドーロタイマー設定*/
 
 
 /* プロトタイプ設定 */
@@ -102,6 +104,7 @@ enum PomoTimerState{
 
 PomoTimerScreenState currentPomoTimerScreen = START;
 PomoTimerState currentPomoTimerState = PAUSED;
+const int currentLap = 0;
 
 
 /* 加速度センサー変数*/
@@ -305,6 +308,10 @@ void pomoWatchTitleScreen(){
 void pomoWatchTimeScreen(){
     switch(currentPomoTimerScreen){
         case START:
+            currentLap = 0;
+            if(currentButtonState == PRESSED){
+                currentPomoTimerState = WORK;
+            }
             break;
         case WORK:
             break;
@@ -314,8 +321,14 @@ void pomoWatchTimeScreen(){
 
     switch(currentPomoTimerState){
         case PAUSED:
+            if(currentButtonState == PRESSED){
+                currentPomoTimerState = RUNNING;
+            }
             break;
         case RUNNING:
+            if(currentButtonState == PRESSED){
+                currentPomoTimerState = PAUSED;
+            
             break;
     }
 }
