@@ -90,20 +90,14 @@ ControlState currentControl = CENTER; //現在の頭方向状態
 ButtonState currentButtonState = NOT_PRESSED; //現在のボタン押下状態
 
 //ポモドーロタイマー画面状態
-enum PomoTimerScreenState{
-    START,
+enum PomoTimerState{
+    STOPPED,
     WORK,
     REST,
 };
 
-//ポモドーロタイマー状態
-enum PomoTimerState{
-    PAUSED,
-    RUNNING,
-};
-
-PomoTimerScreenState currentPomoTimerScreen = START;
-PomoTimerState currentPomoTimerState = PAUSED;
+PomoTimerState currentPomoTimerState = STOPPED;
+unsigned long timerEndTime = 0;
 const int currentLap = 0;
 
 
@@ -306,29 +300,17 @@ void pomoWatchTitleScreen(){
 }
 
 void pomoWatchTimeScreen(){
-    switch(currentPomoTimerScreen){
-        case START:
-            currentLap = 0;
-            if(currentButtonState == PRESSED){
-                currentPomoTimerState = WORK;
-            }
-            break;
-        case WORK:
-            break;
-        case REST:
-            break;
-    }
 
     switch(currentPomoTimerState){
-        case PAUSED:
-            if(currentButtonState == PRESSED){
-                currentPomoTimerState = RUNNING;
-            }
+        case STOPPED:
             break;
-        case RUNNING:
+        case WORK:
             if(currentButtonState == PRESSED){
-                currentPomoTimerState = PAUSED;
-            
+                currentPomoTimerState = STOPPED;
+            break;
+        case REST:
+            if(currentButtonState == PRESSED){
+                currentPomoTimerState = STOPPED;
             break;
     }
 }
