@@ -97,7 +97,10 @@ enum PomoTimerState{
 };
 
 PomoTimerState currentPomoTimerState = STOPPED;
-unsigned long timerEndTime = 0;
+unsigned long startTime = 0;
+unsigned long elapsedTime = 0;
+const int workTime = 25; //ポモドーロタイマー、WORK時間
+const int restTime = 5; //ポモドーロタイマー、REST時間
 const int currentLap = 0;
 
 
@@ -303,16 +306,59 @@ void pomoWatchTimeScreen(){
 
     switch(currentPomoTimerState){
         case STOPPED:
+            if(currentButtonState == PRESSED){
+                currentPomoTimerState = WORK;
+                startTime = millis();
+            }
             break;
         case WORK:
+            elapsedTime = (millis() - startTime)/1000;
             if(currentButtonState == PRESSED){
                 currentPomoTimerState = STOPPED;
+            } else if(elapsedTime >= (workTime * 60)){
+                currentPomoTimerState = REST;
+                startTime = millis();
+            }
             break;
         case REST:
+            elapsedTime = (millis() - startTime)/1000;
             if(currentButtonState == PRESSED){
                 currentPomoTimerState = STOPPED;
+            }else if(elapsedTime >= (restTime * 60)){
+                currentButtonState = WORK;
+                startTime = millis();
+            }
             break;
     }
+
+    int minites = elapsedTime / 60;
+    int seconds = elapsedTime % 60;
+    char timeBuffer[6];
+    sprintf(timeBuffer, "%02d:%02d",minites, seconds);
+
+    // 状態を文字列に変換
+    const char* stateString;
+    switch (currentPomoTimerState) {
+        case STOPPED:
+            stateString = "STOPPED";
+            break;
+        case WORK:
+            stateString = "WORK";
+            break;
+        case REST:
+            stateString = "REST";
+            break;
+    }
+
+
+    u8g2.clearBuffer();
+    u8g2.setFont(u8g2_font_luBIS08_tr);
+    u8g2.drawStr(20,20,stateString);
+    u8g2.drawStr(20,40,timeBuffer);
+    u8g2.sendBuffer();
+
+
+
 }
 
 void runningVisionTitleScreen(){
