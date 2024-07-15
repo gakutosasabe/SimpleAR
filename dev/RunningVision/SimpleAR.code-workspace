@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"name": "RunningVision",
+			"path": "../../../PlatformIO/Projects/RunningVision"
+		},
+		{
+			"name": "RunningVision",
+			"path": "."
+		}
+	],
+	"settings": {}
+}
